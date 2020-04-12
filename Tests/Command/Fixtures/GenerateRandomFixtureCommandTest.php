@@ -13,9 +13,9 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class GenerateRandomFixtureCommandTest.
+ * @group legacy
  *
- * @coversDefaultClass Smartbox\CoreBundle\Command\Fixtures\GenerateRandomFixtureCommand
+ * @coversDefaultClass \Smartbox\CoreBundle\Command\Fixtures\GenerateRandomFixtureCommand
  */
 class GenerateRandomFixtureCommandTest extends KernelTestCase
 {
@@ -40,7 +40,7 @@ class GenerateRandomFixtureCommandTest extends KernelTestCase
 
     public static function getKernelClass()
     {
-        return \AppKernel::class;
+        return \Smartbox\CoreBundle\Tests\AppKernel::class;
     }
 
     public function dataProviderForEntityGeneration()
@@ -57,37 +57,29 @@ class GenerateRandomFixtureCommandTest extends KernelTestCase
     /**
      * @dataProvider dataProviderForEntityGeneration
      *
-     * @covers ::execute
-     * @covers Smartbox\CoreBundle\Utils\Generator\RandomFixtureGenerator::generate
-     * @covers Smartbox\CoreBundle\Utils\Helper\NamespaceResolver::resolveNamespaceForClass
-     * @covers Smartbox\CoreBundle\Type\Context\ContextFactory::createSerializationContextForFixtures
-     * @covers Smartbox\CoreBundle\Type\Context\ContextFactory::createDeserializationContextForFixtures
-     *
      * @param $group
      * @param $version
      */
     public function testExecute($group, $version)
     {
-        $this->application->add(new GenerateRandomFixtureCommand());
-
-        $command = $this->application->find(GenerateRandomFixtureCommand::COMMAND_NAME);
+        $command = $this->application->find('smartbox:core:generate:random-fixture');
         $commandTester = new CommandTester($command);
 
         /** @var SerializerInterface $serializer */
-        $serializer = $this->container->get('serializer');
+        $serializer = $this->container->get('jms_serializer');
 
         $commandConfiguration = [];
-        if (!is_null($group)) {
+        if (!\is_null($group)) {
             $commandConfiguration['--entity-group'] = $group;
         }
-        if (!is_null($version)) {
+        if (!\is_null($version)) {
             $commandConfiguration['--entity-version'] = $version;
         }
 
         $commandConfiguration['--raw-output'] = true;
 
         $commandTester->execute(
-            array_merge(
+            \array_merge(
                 [
                     'command' => $command->getName(),
                     'entity' => 'TestComplexEntity',
@@ -97,7 +89,7 @@ class GenerateRandomFixtureCommandTest extends KernelTestCase
         );
 
         $this->assertTrue(
-            in_array($commandTester->getStatusCode(), [0, null], true),
+            \in_array($commandTester->getStatusCode(), [0, null], true),
             'Command should return proper status code.'
         );
         $this->assertInstanceOf(

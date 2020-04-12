@@ -5,6 +5,7 @@ namespace Smartbox\CoreBundle\Tests\Serializer\Handler;
 use JMS\Serializer\SerializerInterface;
 use Smartbox\CoreBundle\Serializer\Handler\CachedObjectHandler;
 use JMS\Serializer\SerializationContext;
+use Smartbox\CoreBundle\Tests\AppKernel;
 use Smartbox\CoreBundle\Tests\Fixtures\Entity\CacheableEntity;
 use Smartbox\CoreBundle\Tests\Fixtures\Entity\SerializableThing;
 use Smartbox\CoreBundle\Tests\Utils\Cache\FakeCacheService;
@@ -17,7 +18,7 @@ class CachedObjectHandlerTest extends KernelTestCase
 {
     protected static function getKernelClass()
     {
-        return \AppKernel::class;
+        return AppKernel::class;
     }
 
     private function prepareKernel($env = null)
@@ -72,7 +73,7 @@ class CachedObjectHandlerTest extends KernelTestCase
         $container->get('smartcore.serializer.handler.cache')->setCacheService($cacheServiceMock);
 
         /** @var SerializerInterface $serializer */
-        $serializer = $container->get('serializer');
+        $serializer = $container->get('jms_serializer');
         $cacheData = $this->createCacheableEntity('title 1');
         $cacheDataArray = [
             '_type' => 'Smartbox\\CoreBundle\\Tests\\Fixtures\\Entity\\CacheableEntity',
@@ -97,7 +98,7 @@ class CachedObjectHandlerTest extends KernelTestCase
             ]
         );
 
-        $context = new SerializationContext();
+        $context = SerializationContext::create();
 
         $serializedEntity = $serializer->serialize($entity, $format, $context);
         $cacheKey = CachedObjectHandler::getDataCacheKey($cacheData, $context);
@@ -106,7 +107,7 @@ class CachedObjectHandlerTest extends KernelTestCase
         $this->assertEquals($entity, $deserializedEntity);
 
         $expectedSpyLog = [];
-        if (in_array($format, ['json', 'array'])) {
+        if (\in_array($format, ['json', 'array'])) {
             $expectedSpyLog = [
                 [
                     'method' => 'exists',
@@ -170,7 +171,7 @@ class CachedObjectHandlerTest extends KernelTestCase
         $container = $kernel->getContainer();
 
         /** @var SerializerInterface $serializer */
-        $serializer = $container->get('serializer');
+        $serializer = $container->get('jms_serializer');
         $cacheData = $this->createCacheableEntity('title 1');
 
         $entity = new SerializableThing();
